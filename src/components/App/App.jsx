@@ -1,32 +1,57 @@
 import './App.module.css';
-import Profile from '../Profile/Profile.jsx';
-import userData from '../userData.json';
-import FriendList from '../FriendList/FriendList.jsx';
-import friends from '../friends.json';
-import transactions from '../transactions.json';
-import TransactionHistory from '../TransactionHistory/TransactionHistory.jsx';
-
-
-
+import Description from '../Description/Description';
+import Feedback from '../Feedback/Feedback.jsx';
+import Options from '../Options/Options.jsx';
+import Notification from '../Notification/Notification.jsx';
+import { useState, useEffect } from 'react';
 
 const App = () => {
+  const [feedbacks, setFeedbacks] = useState(() => {
+    const keyVal = localStorage.getItem('feadbackValue');
+    const parsedKeyVal = JSON.parse(keyVal) ?? {
+      good: 0,
+      neutral: 0,
+      bad: 0,
+    };
+    return parsedKeyVal;
+  });
+
+  useEffect(() => {
+    const stringifiedValue = JSON.stringify(feedbacks);
+    localStorage.setItem('feadbackValue', stringifiedValue);
+  }, [feedbacks]);
+
+  const updateFeedback = feedbackType => {
+    setFeedbacks({ ...feedbacks, [feedbackType]: feedbacks[feedbackType] + 1 });
+  };
+
+  const totalFeedback = feedbacks.good + feedbacks.neutral + feedbacks.bad;
+
+  const positiefFeedback = Math.round((feedbacks.good / totalFeedback) * 100);
+
+  const resetFeedback = () => {
+    setFeedbacks({ good: 0, neutral: 0, bad: 0 });
+  };
+
   return (
-    <div>
-      <Profile
-        name={userData.username}
-        tag={userData.tag}
-        location={userData.location}
-        image={userData.avatar}
-        stats={userData.stats}
-      />
-      <FriendList friends={friends} />
-      <TransactionHistory items={transactions} />
-    </div>
+    <section>
+      <Description></Description>
+      <Options
+        resetFeedback={resetFeedback}
+        updateFeedback={updateFeedback}
+        totalFeedback={totalFeedback}
+      ></Options>
+      {totalFeedback >= 1 ? (
+        <Feedback
+          feedbacks={feedbacks}
+          totalFeedback={totalFeedback}
+          roundedNumber={positiefFeedback}
+        ></Feedback>
+      ) : (
+        <Notification />
+      )}
+    </section>
+  );
+};
 
-  )
-}
-
-export default App
-
-
-
+export default App;
